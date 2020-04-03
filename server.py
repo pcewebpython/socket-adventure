@@ -43,7 +43,7 @@ class Server(object):
     each room have a unique description.
     """
 
-    game_name = "Realms of Venture"
+    game_name = "Realms of Seattle"
 
     def __init__(self, port=50000):
         self.input_buffer = ""
@@ -79,9 +79,17 @@ class Server(object):
         :return: str
         """
 
-        # TODO: YOUR CODE HERE
+        descriptions = [
+            "You're in... Costco? Everyone around you is scavenging toilet paper. " +
+            "You just came for the $1.50 hotdog combo, didn't you?",
+            "You're at UW and there are Cherry Blossom trees all around you. You only " +
+            "have 4 rooms to live in the rest of your life, so this isn't a bad option.",
+            "You found yourself in a room with all the delicacies Pike's place has to offer. " +
+            "People are flinging fish, kombucha is on tap, and there's a bottomless supply of" + 
+            "... Beecher's Mac & Cheese? Heavenly.",
+            "You're in the rain room. Yep - that's a thing here in Seattle."]
 
-        pass
+        return descriptions[room_number]
 
     def greet(self):
         """
@@ -92,7 +100,7 @@ class Server(object):
         
         :return: None 
         """
-        self.output_buffer = "Welcome to {}! {}".format(
+        self.output_buffer = "Welcome to {}!\n{}".format(
             self.game_name,
             self.room_description(self.room)
         )
@@ -108,9 +116,11 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        received = b''
+        while b'\n' not in received:
+            received += self.client_connection.recv(16)
+        
+        self.input_buffer = received.decode().strip('\n')
 
     def move(self, argument):
         """
@@ -133,9 +143,21 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        if self.room == 0:
+            if argument == "north":
+                self.room = 3
+            if argument == "east":
+                self.room = 2
+            if argument == "west":
+                self.room = 1
+        if self.room == 1 and argument == "east":
+            self.room = 0
+        if self.room == 2 and argument == "west":
+            self.room = 0
+        if self.room == 3 and argument == "south":
+            self.room = 0
 
-        pass
+        self.output_buffer = self.room_description(self.room)
 
     def say(self, argument):
         """
@@ -151,9 +173,7 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.output_buffer = 'You say, "{}"'.format(argument)
 
     def quit(self, argument):
         """
@@ -167,9 +187,8 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.done = True
+        self.output_buffer = "Goodbye!" 
 
     def route(self):
         """
@@ -183,9 +202,16 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        command = self.input_buffer.split(" ")
+        action = command.pop(0)
+        command = " ".join(command)
 
-        pass
+        if action == "say":
+            self.say(command)
+        if action == "move":
+            self.move(command)
+        if action == "quit":
+            self.quit(command)
 
     def push_output(self):
         """
@@ -197,9 +223,8 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
+        self.client_connection.sendall(b"OK! " + self.output_buffer.encode() + b"\n")
 
-        pass
 
     def serve(self):
         self.connect()
