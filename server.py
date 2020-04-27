@@ -79,9 +79,11 @@ class Server(object):
         :return: str
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        descriptions = ["You are in the room with the unicorn stampede.",
+                        "You are in the room of no forgiveness.",
+                        "You are in the anti-matter collision room.",
+                        "You are in the blink realm of a portal loop."]
+        return descriptions[room_number]
 
     def greet(self):
         """
@@ -108,9 +110,11 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
+        message = b''
+        while b'\n' not in message:
+            message += self.client_connection.recv(16)
 
-        pass
+        self.input_buffer = message.decode()
 
     def move(self, argument):
         """
@@ -133,9 +137,15 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        move_dict = {0: {'north': 3, 'west': 1, 'east': 2},
+                     1: {'east': 0}, 2: {'west': 0}, 3: {'south': 0}}
 
-        pass
+        try:
+            self.room = move_dict[self.room][argument]
+            self.output_buffer = self.room_description(self.room)
+        except:
+            self.output_buffer = f"Can't go {argument} from here traveler."\
+                                  " Try another direction!"
 
     def say(self, argument):
         """
@@ -151,9 +161,7 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.output_buffer = f'You say, "{argument}"'
 
     def quit(self, argument):
         """
@@ -167,9 +175,8 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.done = True
+        self.output_buffer = "Go with fortitude, traveler."
 
     def route(self):
         """
@@ -183,9 +190,14 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        command = self.input_buffer.split(' ')
+        action = command.pop(0).strip('\n')
+        arg = ' '.join(command).strip('\n')
 
-        pass
+        try:
+            {'move': self.move, 'say': self.say, 'quit': self.quit}[action](arg)
+        except:
+            self.output_buffer = "Can't do that here, traveler. Try another command."
 
     def push_output(self):
         """
@@ -197,9 +209,7 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.client_connection.sendall(b'OK! ' + self.output_buffer.encode() + b'\n')
 
     def serve(self):
         self.connect()
