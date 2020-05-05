@@ -24,5 +24,8 @@ while True:
 
     print(response)
 
+    if response.startswith("OK! Goodbye"):
+        exit(-1)
+
     my_message = input("> ").encode('utf-8') + b'\n'
     client_socket.sendall(my_message)
