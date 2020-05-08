@@ -78,10 +78,16 @@ class Server(object):
         :param room_number: int
         :return: str
         """
-
-        # TODO: YOUR CODE HERE
-
-        pass
+        
+        room_desc = [
+            "You are in the room with the white wallpaper.",
+            "You are in the room with the green wallpaper.",
+            "You are in the room with the brown wallpaper.",
+            "You are in the room with the mauve wallpaper.",
+        ]
+        room_desc_output = room_desc[room_number]
+        
+        return room_desc_output
 
     def greet(self):
         """
@@ -108,10 +114,13 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
-
+        received = b''
+        
+        while b'\n' not in received:
+            received += self.client_connection.recv(16)
+        
+        self.input_buffer = received.decode().strip()
+        
     def move(self, argument):
         """
         Moves the client from one room to another.
@@ -132,10 +141,26 @@ class Server(object):
         :param argument: str
         :return: None
         """
+        
+        if self.room == 0 and argument == "north":
+            self.room = 3
 
-        # TODO: YOUR CODE HERE
+        if self.room == 0 and argument == "west":
+            self.room = 1
 
-        pass
+        if self.room == 0 and argument == "east":
+            self.room = 2
+
+        if self.room == 1 and argument == "east":
+            self.room = 0
+
+        if self.room == 2 and argument == "west":
+            self.room = 0
+
+        if self.room == 3 and argument == "south":
+            self.room = 0
+
+        self.output_buffer = self.room_description(self.room)
 
     def say(self, argument):
         """
@@ -151,9 +176,7 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.output_buffer = 'You say, "{}"'.format(argument)
 
     def quit(self, argument):
         """
@@ -167,7 +190,8 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        self.done = True
+        self.output_buffer = "Goodbye!"
 
         pass
 
@@ -182,10 +206,18 @@ class Server(object):
         
         :return: None
         """
-
-        # TODO: YOUR CODE HERE
-
-        pass
+        
+        recieved = self.input_buffer.split(" ")
+        
+        command = recieved.pop(0)
+        arguments = " ".join(recieved)
+        
+        {
+            'quit': self.quit,
+            'move': self.move,
+            'say': self.say
+        }[command](arguments)
+        
 
     def push_output(self):
         """
@@ -197,9 +229,8 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.client_connection.sendall(b"OK! " + self.output_buffer.encode() + b"\n")
+        
 
     def serve(self):
         self.connect()
