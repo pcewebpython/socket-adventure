@@ -242,7 +242,8 @@ class Server(object):
         arguments = " ".join(received)
 
         if (command.lower() == 'say') or (command.lower() == 'move' and arguments.lower()
-                                          in ['north', 'south', 'east', 'west']):
+                                          in ['north', 'south', 'east', 'west']) or\
+                                          (command.lower() == 'quit'):
             {
                 'quit': self.quit,
                 'move': self.move,
