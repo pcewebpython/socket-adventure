@@ -1,5 +1,6 @@
 # USER SPECIFIC/IDE FILES
 .idea/
+.vscode
 
 # GENERAL PYTHON FILES
 __pycache__/
