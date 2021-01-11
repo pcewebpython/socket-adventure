@@ -54,12 +54,18 @@ class Server(object):
         self.port = port
 
         self.room = 0
+        self.room_color = ["green", "brown", "yellow", "mauve"]
 
     def connect(self):
         self.socket = socket.socket(
             socket.AF_INET,
             socket.SOCK_STREAM,
             socket.IPPROTO_TCP)
+
+        self.socket.setsockopt(
+            socket.SOL_SOCKET,
+            socket.SO_REUSEADDR,
+            1)
 
         address = ('127.0.0.1', self.port)
         self.socket.bind(address)
@@ -78,10 +84,12 @@ class Server(object):
         :param room_number: int
         :return: str
         """
+        if type(room_number) is int:
+            return f"{self.room_color[room_number].capitalize()} wallpaper covers the walls,\n" \
+                   f"bathing the room in warm light reflected from the half-drawn curtains."
+        else:
+            return "Room number not found."
 
-        # TODO: YOUR CODE HERE
-
-        pass
 
     def greet(self):
         """
@@ -92,11 +100,9 @@ class Server(object):
         
         :return: None 
         """
-        self.output_buffer = "Welcome to {}! {}".format(
-            self.game_name,
-            self.room_description(self.room)
-        )
-
+        self.output_buffer = f"Welcome to {self.game_name}! \n\n" \
+                             f"{self.room_description(self.room)}"
+ 
     def get_input(self):
         """
         Retrieve input from the client_connection. All messages from the client
@@ -107,11 +113,12 @@ class Server(object):
          
         :return: None 
         """
+        received = b''
+        while b'\n' not in received:
+            received+=self.client_connection.recv(16)
 
-        # TODO: YOUR CODE HERE
-
-        pass
-
+        self.input_buffer = received.decode().strip()
+    
     def move(self, argument):
         """
         Moves the client from one room to another.
@@ -132,10 +139,20 @@ class Server(object):
         :param argument: str
         :return: None
         """
+        if self.room == 0 and argument == "north":
+            self.room = 3
+        if self.room == 0 and argument == "west":
+            self.room = 1
+        if self.room == 0 and argument == "east":
+            self.room = 2
+        if self.room == 1 and argument == "east":
+            self.room = 0
+        if self.room == 2 and argument == "west":
+            self.room = 0
+        if self.room == 3 and argument == "south":
+            self.room = 0
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.output_buffer = self.room_description(self.room)
 
     def say(self, argument):
         """
@@ -150,10 +167,8 @@ class Server(object):
         :param argument: str
         :return: None
         """
-
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.output_buffer = f'You say, "{argument}"'
+    
 
     def quit(self, argument):
         """
@@ -167,9 +182,8 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.done = True
+        self.output_buffer = "Goodbye!"
 
     def route(self):
         """
@@ -182,10 +196,15 @@ class Server(object):
         
         :return: None
         """
+        received = self.input_buffer.split(" ")
+        command = received.pop(0)
+        arguments = " ".join(received)
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        {
+            'quit': self.quit,
+            'move': self.move,
+            'say': self.say
+        }[command](arguments)
 
     def push_output(self):
         """
@@ -196,10 +215,8 @@ class Server(object):
         
         :return: None 
         """
-
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.client_connection.sendall(b"OK! " + self.output_buffer.encode() + b"\n")
+        
 
     def serve(self):
         self.connect()
@@ -210,6 +227,6 @@ class Server(object):
             self.get_input()
             self.route()
             self.push_output()
-
+        
         self.client_connection.close()
         self.socket.close()
