@@ -79,10 +79,14 @@ class Server(object):
         :return: str
         """
 
-        # TODO: YOUR CODE HERE
+        return [
+            "You are in the room with the white wallpaper.",
+            "You are in the room with the green wallpaper.",
+            "You are in the room with the brown wallpaper.",
+            "You are in the room with the mauve wallpaper.",
+        ][room_number]
 
-        pass
-
+        
     def greet(self):
         """
         Welcome a client to the game.
@@ -108,9 +112,14 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
+        received = b''
 
-        pass
+        while b'\n' not in received:
+            received += self.client_connection.recv(16)
+
+        # had to use the replace method to drop the '\n'--wondering if the socket object read method handles this better; for some reason I couldn't get the read method (that was used in the activity help) working
+        self.input_buffer = received.decode().replace('\n', '')
+
 
     def move(self, argument):
         """
@@ -133,9 +142,25 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        allowed_argument = {0: ["north", "east", "west"],
+                            1: ["east"],
+                            2: ["west"],
+                            3: ["south"]}
 
-        pass
+        new_move_room = {0: [3, 2, 1],
+                         1: [0],
+                         2: [0],
+                         3: [0]}
+
+        if argument in allowed_argument[self.room]:
+            new_room_idx = allowed_argument[self.room].index(argument)
+            new_room = new_move_room[self.room][new_room_idx]
+            self.room = new_room
+
+            self.output_buffer = self.room_description(self.room)
+        else:
+            self.output_buffer = "Invalid movement."
+
 
     def say(self, argument):
         """
@@ -151,9 +176,8 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        self.output_buffer = 'You say, "{}"'.format(argument)
 
-        pass
 
     def quit(self, argument):
         """
@@ -167,9 +191,9 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        self.done = True
+        self.output_buffer = "Goodbye!"
 
-        pass
 
     def route(self):
         """
@@ -183,9 +207,17 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        received = self.input_buffer.split(" ")
 
-        pass
+        command = received.pop(0)
+        arguments = ' '.join(received)
+
+        {
+            'quit': self.quit,
+            'say': self.say,
+            'move': self.move
+        }[command](arguments)
+
 
     def push_output(self):
         """
@@ -197,9 +229,8 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
+        self.client_connection.sendall(b"OK! " + self.output_buffer.encode() + b"\n")
 
-        pass
 
     def serve(self):
         self.connect()
