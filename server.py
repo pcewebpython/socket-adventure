@@ -79,9 +79,12 @@ class Server(object):
         :return: str
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        return [
+            "You are in the room with the cat with the un-ending gaze",
+            "You are in the room that is full of people, one of whom has, farted.",
+            "You are in the room with a window that doesn't open, but isn't fully closed",
+            "You are in the room with Professor Plum and the candlestick."
+        ][room_number]
 
     def greet(self):
         """
@@ -133,9 +136,8 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.done = True
+        self.output_buffer = "Goodbye!"
 
     def say(self, argument):
         """
@@ -151,9 +153,7 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.output_buffer = 'You say, "{}"'.format(argument)
 
     def quit(self, argument):
         """
@@ -197,9 +197,7 @@ class Server(object):
         :return: None 
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.client_connection.sendall(b"OK! " + self.output_buffer.encode() + b"\n")
 
     def serve(self):
         self.connect()
