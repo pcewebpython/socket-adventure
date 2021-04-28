@@ -167,9 +167,8 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.done = True
+        self.output_buffer = "Goodbye!"
 
     def route(self):
         """
@@ -183,7 +182,14 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        choice = self.client_connection.recv(16) #.decode('utf8')
+        print(type(choice))
+        print(choice)
+
+        selection = choice.decode('utf8')
+
+        if selection.strip() == 'quit':
+            self.quit('quit')
 
         pass
 
